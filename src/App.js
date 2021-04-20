@@ -1,18 +1,80 @@
 import React, { Component } from 'react';
 import './stylesheets/App.css'
 import { Segment } from 'semantic-ui-react';
-
+import WestworldMap from './components/WestworldMap';
+import Headquarters from './components/Headquarters';
 
 class App extends Component {
+  state = {
+    hosts: [],
+    areas: [],
+    selectedHostId: null
+  }
 
-  // As you go through the components given you'll see a lot of functional components.
-  // But feel free to change them to whatever you want.
-  // It's up to you whether they should be stateful or not.
+  componentDidMount() {
+    fetch('http://localhost:3000/hosts')
+      .then(resp => resp.json())
+      .then(fetchedHosts => this.setState({ hosts: fetchedHosts }))
 
-  render(){
+    fetch('http://localhost:3000/areas')
+      .then(resp => resp.json())
+      .then(fetchedAreas => this.setState({ areas: fetchedAreas }))
+  }
+
+  activateAll = (activated) => {
+    this.setState({
+      hosts: this.state.hosts.map(host => {
+        host.active = activated
+        return host
+      })
+    })
+  }
+
+  activateHost = (id) => {
+    this.setState(state => {
+      state.host.forEach(host => {
+        if (host.id === id) {
+          host.active = !host.active
+        }
+      })
+      return { hosts: state.hosts }
+    })
+  }
+
+  selectHost = (selectedHostId) => { this.setState({ selectedHostId }) }
+
+  renderActiveHosts = () => this.state.hosts.filter(host => host.active)
+
+  setArea = (id, areaName) => {
+    this.setState(state => {
+      state.hosts.forEach(host => {
+        if (host.id === id) {
+          host.area = areaName
+        }
+      })
+      return { hosts: state.hosts }
+    })
+  }
+
+  render() {
     return (
       <Segment id='app'>
-        {/* What components should go here? Check out Checkpoint 1 of the Readme if you're confused */}
+        <WestworldMap
+          areas={this.state.areas}
+          hosts={this.renderActiveHosts()}
+          selectedHostId={this.state.selectedHostId}
+          selectHost={this.selectHost}
+        />
+
+        <Headquarters
+          areas={this.state.areas}
+          hosts={this.state.hosts}
+          activateHost={this.activateHost}
+          selectedHostId={this.selectedHostId}
+          selectHost={this.selectHost}
+          setArea={this.setArea}
+          activateAll={this.activateAll}
+        />
       </Segment>
     )
   }
